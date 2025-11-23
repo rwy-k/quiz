@@ -55,12 +55,12 @@ const QuizPage: React.FC = () => {
         <div className="flex flex-col justify-center items-center h-screen w-screen">
             <h1 className="text-2xl font-bold text-center my-4 text-blue-500">Quiz</h1>
             {currentQuiz && (
-                <QuizCard 
-                    key={currentQuizId} 
-                    quiz={currentQuiz} 
-                    answer={currentQuizAnswer} 
-                    onSubmit={handleSubmit} 
-                    onNext={handleNext} 
+                <QuizCard
+                    key={currentQuizId}
+                    quiz={currentQuiz}
+                    answer={currentQuizAnswer}
+                    onSubmit={handleSubmit}
+                    onNext={handleNext}
                 />
             )}
         </div>

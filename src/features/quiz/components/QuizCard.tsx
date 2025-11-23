@@ -37,10 +37,7 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz, answer = '', onSubmit, onNext
                         <p className="text-gray-500">Correct Answer: {quiz.correctAnswer}</p>
                         <p className="text-gray-500">Selected Answer: {selectedOption}</p>
                     </div>
-                    <button
-                        onClick={onNext}
-                        className="bg-blue-500 text-white p-2 rounded-md mt-4"
-                    >
+                    <button onClick={onNext} className="bg-blue-500 text-white p-2 rounded-md mt-4">
                         Next
                     </button>
                 </div>
