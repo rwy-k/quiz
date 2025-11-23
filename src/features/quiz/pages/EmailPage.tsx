@@ -7,13 +7,14 @@ const EmailPage: React.FC = () => {
     const navigate = useNavigate();
     const handleSubmit = (email: string) => {
         store.dispatch(setEmail(email));
-        navigate('/quiz');
-    }   
+        navigate('/submitted');
+    };
+    const email = store.getState().email;
     return (
-        <div>
-            <EmailForm onSubmit={handleSubmit} />
+        <div className="flex justify-center items-center h-screen w-screen">
+            <EmailForm email={email} onSubmit={handleSubmit} />
         </div>
-    )
-}
+    );
+};
 
-export default EmailPage
+export default EmailPage;

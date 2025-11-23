@@ -1,55 +1,54 @@
-import { createSlice, configureStore, type PayloadAction } from '@reduxjs/toolkit'
-import type { Quiz } from './types'
+import { createSlice, configureStore, type PayloadAction } from '@reduxjs/toolkit';
+import type { Quiz, QuizAnswer } from './types';
+import { indexDBMiddleware } from './helpers';
+
+const initialState = {
+    email: localStorage.getItem('email') || '',
+    quizzes: [
+        {
+            id: '1',
+            question: 'What is the capital of France?',
+            options: ['Paris', 'London', 'Berlin', 'Madrid'],
+            correctAnswer: 'Paris',
+        },
+        {
+            id: '2',
+            question: 'What is the capital of Germany?',
+            options: ['Berlin', 'London', 'Madrid', 'Paris'],
+            correctAnswer: 'Berlin',
+        },
+    ] as Quiz[],
+    quizzesAnswers: [] as QuizAnswer[],
+};
 
 const quizSlice = createSlice({
-  name: 'quiz',
-  initialState: {
-    email: '',
-    quizzes: [] as Quiz[],
-    currentQuiz: null as Quiz | null,
-    currentQuestion: '',
-    currentAnswer: '',
-    currentScore: 0,
-    currentQuestionIndex: 0,
-    currentAnswerIndex: 0,
-    currentScoreIndex: 0,
-  },
-  reducers: {
-    setEmail: (state, action: PayloadAction<string>) => {
-      state.email = action.payload
+    name: 'quiz',
+    initialState,
+    reducers: {
+        setEmail: (state, action: PayloadAction<string>) => {
+            state.email = action.payload;
+            localStorage.setItem('email', action.payload);
+        },
+        setQuizzes: (state, action: PayloadAction<Quiz[]>) => {
+            state.quizzes = action.payload;
+        },
+        setQuizzesAnswers: (state, action: PayloadAction<QuizAnswer[]>) => {
+            state.quizzesAnswers = action.payload;
+        },
+        // Action to hydrate state from IndexedDB
+        hydrateFromDB: (state, action: PayloadAction<Partial<typeof initialState>>) => {
+            return { ...state, ...action.payload };
+        },
     },
-    setQuizzes: (state, action: PayloadAction<Quiz[]>) => {
-      state.quizzes = action.payload
-    },
-    setCurrentQuiz: (state, action: PayloadAction<Quiz | null>) => {
-      state.currentQuiz = action.payload
-    },
-    setCurrentQuestion: (state, action: PayloadAction<string>) => {
-      state.currentQuestion = action.payload
-    },
-    setCurrentAnswer: (state, action: PayloadAction<string>) => {
-      state.currentAnswer = action.payload
-    },
-    setCurrentScore: (state, action: PayloadAction<number>) => {
-      state.currentScore = action.payload
-    },
-    setCurrentQuestionIndex: (state, action: PayloadAction<number>) => {
-      state.currentQuestionIndex = action.payload
-    },
-    setCurrentAnswerIndex: (state, action: PayloadAction<number>) => {
-      state.currentAnswerIndex = action.payload
-    },
-    setCurrentScoreIndex: (state, action: PayloadAction<number>) => {
-      state.currentScoreIndex = action.payload
-    },
-  }
-})
+});
 
-export const { setEmail, setQuizzes, setCurrentQuiz, setCurrentQuestion, setCurrentAnswer, setCurrentScore, setCurrentQuestionIndex, setCurrentAnswerIndex, setCurrentScoreIndex } = quizSlice.actions
+export const { setEmail, setQuizzes, setQuizzesAnswers, hydrateFromDB } = quizSlice.actions;
 
 export const store = configureStore({
-  reducer: quizSlice.reducer
-})
+    reducer: quizSlice.reducer,
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(indexDBMiddleware),
+});
 
-// Can still subscribe to the store
-store.subscribe(() => console.log(store.getState()))
+store.subscribe(() => {
+    console.info(store.getState());
+});
