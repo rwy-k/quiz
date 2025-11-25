@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import EmailForm from '../components/EmailForm';
-import { store, setEmail } from '../store';
-import { useNavigate } from 'react-router-dom';
-
-const EmailPage: React.FC = () => {
-    const navigate = useNavigate();
-    const handleSubmit = (email: string) => {
-        store.dispatch(setEmail(email));
-        navigate('/submitted');
-    };
-    const email = store.getState().email;
+import { PagePaths } from '../../../shared/types';
+interface EmailPageProps {
+    navigate: (path: PagePaths | `${PagePaths}/${string}`) => void;
+}
+const EmailPage: React.FC<EmailPageProps> = ({ navigate }) => {
+    const handleSubmit = useCallback(
+        (email: string) => {
+            window.localStorage.setItem('email', email);
+            navigate(PagePaths.SUBMITTED);
+        },
+        [navigate]
+    );
+    const email = window.localStorage.getItem('email') || '';
     return (
         <div className="flex justify-center items-center h-screen w-screen">
             <EmailForm email={email} onSubmit={handleSubmit} />

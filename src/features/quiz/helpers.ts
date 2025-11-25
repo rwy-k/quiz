@@ -1,15 +1,39 @@
 import { openDB } from 'idb';
-import type { Action, Middleware } from '@reduxjs/toolkit';
 
 const getDB = async () => {
-    return await openDB('quiz', 2, {
+    return await openDB('quiz', 3, {
         upgrade(db, oldVersion) {
-            // Delete old object store if it exists with the wrong schema
-            if (oldVersion < 2 && db.objectStoreNames.contains('quizzesAnswers')) {
-                db.deleteObjectStore('quizzesAnswers');
+            // Delete old object stores if they exist with wrong schema
+            if (oldVersion < 3) {
+                if (db.objectStoreNames.contains('quizzesAnswers')) {
+                    db.deleteObjectStore('quizzesAnswers');
+                }
+                if (db.objectStoreNames.contains('quizzes')) {
+                    db.deleteObjectStore('quizzes');
+                }
             }
             if (!db.objectStoreNames.contains('quizzesAnswers')) {
                 db.createObjectStore('quizzesAnswers');
+            }
+            if (!db.objectStoreNames.contains('quizzes')) {
+                const quizzesStore = db.createObjectStore('quizzes');
+                quizzesStore.put(
+                    [
+                        {
+                            id: '1',
+                            question: 'What is the capital of France?',
+                            options: ['Paris', 'London', 'Berlin', 'Madrid'],
+                            correctAnswer: 'Paris',
+                        },
+                        {
+                            id: '2',
+                            question: 'What is the capital of Germany?',
+                            options: ['Berlin', 'London', 'Madrid', 'Paris'],
+                            correctAnswer: 'Berlin',
+                        },
+                    ],
+                    'questions'
+                );
             }
         },
     });
@@ -19,22 +43,24 @@ export const loadInitialStateFromDB = async () => {
     try {
         const db = await getDB();
         const quizzesAnswers = await db.get('quizzesAnswers', 'answers');
+        const quizzes = await db.get('quizzes', 'questions');
         return {
             quizzesAnswers: quizzesAnswers || [],
+            quizzes: quizzes || [],
         };
     } catch (error) {
         console.error('Error loading initial state from IndexedDB:', error);
         return {
             quizzesAnswers: [],
+            quizzes: [],
         };
     }
 };
 
-const saveQuizzesAnswersToDB = async (
+export const saveQuizzesAnswersToDB = async (
     quizzesAnswers: {
-        question: string;
+        id: string;
         answer: string;
-        correctAnswer: string;
     }[]
 ) => {
     try {
@@ -43,19 +69,4 @@ const saveQuizzesAnswersToDB = async (
     } catch (error) {
         console.error('Error saving to IndexedDB:', error);
     }
-};
-
-// Redux middleware to automatically sync quizzesAnswers to IndexedDB
-export const indexDBMiddleware: Middleware = (store) => (next) => (action) => {
-    const result = next(action);
-
-    // Only save to IndexedDB when quizzesAnswers is updated
-    if ((action as Action).type === 'quiz/setQuizzesAnswers') {
-        const state = store.getState();
-        if (state.quizzesAnswers) {
-            saveQuizzesAnswersToDB(state.quizzesAnswers).catch(console.error);
-        }
-    }
-
-    return result;
 };

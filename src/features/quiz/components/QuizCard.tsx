@@ -20,7 +20,7 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz, answer = '', onSubmit, onNext
             setIsSubmitted(true);
             onSubmit(selectedOption);
         },
-        [selectedOption, quiz.correctAnswer]
+        [selectedOption, quiz.correctAnswer, onSubmit]
     );
 
     return (
