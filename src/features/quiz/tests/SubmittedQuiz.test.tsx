@@ -1,134 +1,134 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import SubmittedQuiz from '../pages/SubmittedQuiz';
-import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { store, setQuizzesAnswers, setEmail, setQuizzes } from '../store';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { loadInitialStateFromDB, saveQuizzesAnswersToDB } from '../helpers';
+import { PagePaths } from '../../../shared/types';
 
-// Component to track location changes
-const LocationDisplay = () => {
-    const location = useLocation();
-    return <div data-testid="location-display">{location.pathname}</div>;
-};
+// Mock the helpers
+vi.mock('../helpers', () => ({
+    loadInitialStateFromDB: vi.fn(),
+    saveQuizzesAnswersToDB: vi.fn(),
+}));
+
+const mockQuizzes = [
+    {
+        id: '1',
+        question: 'What is the capital of France?',
+        options: ['Paris', 'London', 'Berlin', 'Madrid'],
+        correctAnswer: 'Paris',
+    },
+    {
+        id: '2',
+        question: 'What is the capital of Germany?',
+        options: ['Berlin', 'London', 'Madrid', 'Paris'],
+        correctAnswer: 'Berlin',
+    },
+];
+
+const mockQuizzesAnswers = [
+    {
+        id: '1',
+        answer: 'Paris',
+    },
+    {
+        id: '2',
+        answer: 'Berlin',
+    },
+];
 
 describe('SubmittedQuiz', () => {
     beforeEach(() => {
-        store.dispatch(setEmail('test@test.com'));
-        store.dispatch(
-            setQuizzes([
-                {
-                    id: '1',
-                    question: 'What is the capital of France?',
-                    options: ['Paris', 'London', 'Berlin', 'Madrid'],
-                    correctAnswer: 'Paris',
-                },
-                {
-                    id: '2',
-                    question: 'What is the capital of Germany?',
-                    options: ['Berlin', 'London', 'Madrid', 'Paris'],
-                    correctAnswer: 'Berlin',
-                },
-            ])
-        );
-        store.dispatch(
-            setQuizzesAnswers([
-                {
-                    id: '1',
-                    answer: 'Paris',
-                },
-                {
-                    id: '2',
-                    answer: 'Berlin',
-                },
-            ])
-        );
+        // Mock localStorage
+        const localStorageMock = {
+            getItem: vi.fn((key) => {
+                if (key === 'email') return 'test@test.com';
+                return null;
+            }),
+            setItem: vi.fn(),
+            removeItem: vi.fn(),
+            clear: vi.fn(),
+        };
+        Object.defineProperty(window, 'localStorage', {
+            value: localStorageMock,
+            writable: true,
+        });
+
+        // Mock the helpers
+        vi.mocked(loadInitialStateFromDB).mockResolvedValue({
+            quizzesAnswers: mockQuizzesAnswers,
+            quizzes: mockQuizzes,
+        });
+        vi.mocked(saveQuizzesAnswersToDB).mockResolvedValue(undefined);
     });
-    it('should render', () => {
-        render(
-            <MemoryRouter>
-                <SubmittedQuiz />
-            </MemoryRouter>
-        );
-        expect(screen.getByText('Submitted Quiz')).toBeInTheDocument();
+    it('should render', async () => {
+        render(<SubmittedQuiz navigate={() => {}} />);
+        await waitFor(() => {
+            expect(screen.getByText('Submitted Quiz')).toBeInTheDocument();
+        });
     });
-    it('should show correct answers', () => {
-        render(
-            <MemoryRouter>
-                <SubmittedQuiz />
-            </MemoryRouter>
-        );
-        expect(screen.getByText(/Correct Answers:/)).toBeInTheDocument();
+    it('should show correct answers', async () => {
+        render(<SubmittedQuiz navigate={() => {}} />);
+        await waitFor(() => {
+            expect(screen.getByText(/Correct Answers:/)).toBeInTheDocument();
+        });
     });
-    it('should show incorrect answers', () => {
-        render(
-            <MemoryRouter>
-                <SubmittedQuiz />
-            </MemoryRouter>
-        );
-        expect(screen.getByText(/Incorrect Answers:/)).toBeInTheDocument();
+    it('should show incorrect answers', async () => {
+        render(<SubmittedQuiz navigate={() => {}} />);
+        await waitFor(() => {
+            expect(screen.getByText(/Incorrect Answers:/)).toBeInTheDocument();
+        });
     });
-    it('should show total questions', () => {
-        render(
-            <MemoryRouter>
-                <SubmittedQuiz />
-            </MemoryRouter>
-        );
-        expect(screen.getByText(/Total Questions:/)).toBeInTheDocument();
+    it('should show total questions', async () => {
+        render(<SubmittedQuiz navigate={() => {}} />);
+        await waitFor(() => {
+            expect(screen.getByText(/Total Questions:/)).toBeInTheDocument();
+        });
     });
-    it('should show answers', () => {
-        render(
-            <MemoryRouter>
-                <SubmittedQuiz />
-            </MemoryRouter>
-        );
-        expect(screen.getByText('Answers:')).toBeInTheDocument();
+    it('should show answers', async () => {
+        render(<SubmittedQuiz navigate={() => {}} />);
+        await waitFor(() => {
+            expect(screen.getByText('Answers:')).toBeInTheDocument();
+        });
     });
-    it('should show try one more time button', () => {
-        render(
-            <MemoryRouter>
-                <SubmittedQuiz />
-            </MemoryRouter>
-        );
-        expect(screen.getByText('Try one more time')).toBeInTheDocument();
+    it('should show try one more time button', async () => {
+        render(<SubmittedQuiz navigate={() => {}} />);
+        await waitFor(() => {
+            expect(screen.getByText('Try one more time')).toBeInTheDocument();
+        });
     });
-    it('should clear answers when try one more time button is clicked', () => {
-        render(
-            <MemoryRouter initialEntries={['/submitted']}>
-                <SubmittedQuiz />
-            </MemoryRouter>
-        );
+    it('should clear answers when try one more time button is clicked', async () => {
+        render(<SubmittedQuiz navigate={() => {}} />);
+        await waitFor(() => {
+            expect(screen.getByText('Try one more time')).toBeInTheDocument();
+        });
         const button = screen.getByText('Try one more time');
         fireEvent.click(button);
 
-        const state = store.getState();
-        expect(state.quizzesAnswers).toEqual([]);
+        await waitFor(() => {
+            expect(saveQuizzesAnswersToDB).toHaveBeenCalledWith([]);
+            expect(window.localStorage.removeItem).toHaveBeenCalledWith('email');
+        });
     });
-    it('should navigate to home page when try one more time button is clicked', () => {
-        render(
-            <MemoryRouter initialEntries={['/submitted']}>
-                <Routes>
-                    <Route path="/submitted" element={<SubmittedQuiz />} />
-                    <Route path="/" element={<div>Home Page</div>} />
-                </Routes>
-                <LocationDisplay />
-            </MemoryRouter>
-        );
+    it('should navigate to quiz page when try one more time button is clicked', async () => {
+        const mockNavigate = vi.fn();
+        render(<SubmittedQuiz navigate={mockNavigate} />);
 
-        // Verify we're on the submitted page initially
-        expect(screen.getByTestId('location-display')).toHaveTextContent('/submitted');
+        await waitFor(() => {
+            expect(screen.getByText('Try one more time')).toBeInTheDocument();
+        });
 
         // Click the button
         const button = screen.getByText('Try one more time');
         fireEvent.click(button);
 
-        // Verify navigation occurred by checking location
-        expect(screen.getByTestId('location-display')).toHaveTextContent('/');
+        await waitFor(() => {
+            expect(mockNavigate).toHaveBeenCalledWith(PagePaths.QUIZ);
+        });
     });
-    it('should show email', () => {
-        render(
-            <MemoryRouter initialEntries={['/submitted']}>
-                <SubmittedQuiz />
-            </MemoryRouter>
-        );
-        expect(screen.getByText('Email: test@test.com')).toBeInTheDocument();
+    it('should show email', async () => {
+        render(<SubmittedQuiz navigate={() => {}} />);
+        await waitFor(() => {
+            expect(screen.getByText('Email: test@test.com')).toBeInTheDocument();
+        });
     });
 });

@@ -1,16 +1,11 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi } from 'vitest';
 import EmailPage from '../pages/EmailPage';
 import EmailForm from '../components/EmailForm';
 
 describe('EmailPage', () => {
     it('should render', () => {
-        render(
-            <MemoryRouter>
-                <EmailPage />
-            </MemoryRouter>
-        );
+        render(<EmailPage navigate={() => {}} />);
         expect(screen.getByText('Enter your email to get the quiz')).toBeInTheDocument();
     });
 });
